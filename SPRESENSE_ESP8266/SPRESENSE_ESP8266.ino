@@ -53,7 +53,7 @@ void setup()
   // success, print IP
   getIP();
 
-  //set the single connection mode
+  //set TCP server timeout
   //sendCheckReply("AT+CIPSTO=0", "OK");
 }
 
@@ -67,12 +67,22 @@ boolean ESP_GETpage(char *host, uint16_t port, char *page) {
   getReply(replybuffer);
 
   if (strcmp(replybuffer, "OK") != 0) {
+    while (true) {
+      espreadline(500);  // this is the 'echo' from the data
+      Serial.print("<--- "); Serial.println(replybuffer);
+      if (strstr(replybuffer, "OK"))
+      break;
+    }
+  }
+/*
+  if (strcmp(replybuffer, "OK") != 0) {
      // this is OK! could be a version that says "Linked"
      if (strcmp(replybuffer, "Linked") != 0) {
        sendCheckReply("AT+CIPCLOSE", "OK");
        return false;
      }
   }
+*/
 
   delay(500);
 
