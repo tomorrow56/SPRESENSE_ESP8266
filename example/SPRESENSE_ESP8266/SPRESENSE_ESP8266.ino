@@ -11,7 +11,7 @@
 
 #define LED_PIN LED0
 
-#define REPLYBUFFSIZ 255
+#define REPLYBUFFSIZ 0xFFFF
 char replybuffer[REPLYBUFFSIZ];
 uint8_t getReply(char *send, uint16_t timeout = 500, boolean echo = true);
 uint8_t espreadline(uint16_t timeout = 500, boolean multiline = false);
@@ -74,15 +74,6 @@ boolean ESP_GETpage(char *host, uint16_t port, char *page) {
       break;
     }
   }
-/*
-  if (strcmp(replybuffer, "OK") != 0) {
-     // this is OK! could be a version that says "Linked"
-     if (strcmp(replybuffer, "Linked") != 0) {
-       sendCheckReply("AT+CIPCLOSE", "OK");
-       return false;
-     }
-  }
-*/
 
   delay(500);
 
@@ -117,43 +108,34 @@ boolean ESP_GETpage(char *host, uint16_t port, char *page) {
       continue;
     else if (strstr(replybuffer, "busy s..."))
       continue;
-    else break;
+    else if (strstr(replybuffer, "OK"))
+      break;
+//    else break;
   }
 
 //  if (! strstr(replybuffer, "SEND OK") ) return false;
 
   if (! strstr(replybuffer, "OK") ) return false;
 
-  espreadline(1000);
+  espreadline(50);
   Serial.print("3>"); Serial.println(replybuffer);
-  char *s = strstr(replybuffer, "+IPD,");
-  if (!s) return false;
-  uint16_t len = atoi(s+5);
-  //Serial.print(len); Serial.println(" bytes total");
+  if(char *s = strstr(replybuffer, "+IPD,")){
+    uint16_t len = atoi(s+5);
+    Serial.print(len); Serial.println(" bytes total");
+  }
 
-  int16_t contentlen = 0;
+  unsigned long i = 0;
   while (1) {
-    espreadline(50);
-    s = strstr(replybuffer, "Content-Length: ");
-    if (s) {
-      //Serial.println(replybuffer);
-      contentlen = atoi(s+16);
-      Serial.print(F("C-Len = ")); Serial.println(contentlen);
-    }
-    s = strstr(replybuffer, "Content-Type: ");
-    if (s && contentlen) {
-      int16_t i;
-      char c;
-
-      for (i=-2; i<contentlen; i++) {  // eat the first 2 chars (\n\r)
-        while (!Serial2.available());
-        c = Serial2.read(); //UDR0 = c;
-        if (i >= 0) {
-          replybuffer[i] = c;
-        }
+    char c;
+    if(Serial2.available()){
+      c = Serial2.read(); //UDR0 = c;
+//      Serial.write(c);
+      replybuffer[i] = c;
+      i++;
+      delay(1);
+      if(!Serial2.available()){
+        return true;
       }
-      replybuffer[i] = 0;
-      return true;
     }
   }
   //while (1) {
