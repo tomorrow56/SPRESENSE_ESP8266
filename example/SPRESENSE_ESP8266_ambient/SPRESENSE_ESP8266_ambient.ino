@@ -18,7 +18,7 @@ enum {WIFI_ERROR_NONE=0, WIFI_ERROR_AT, WIFI_ERROR_RST, WIFI_ERROR_SSIDPWD, WIFI
 Ambient ambient;
 
 unsigned int channelId = xxxx; // AmbientのチャネルID
-const char* writeKey = "xxxxxxxxxx"; // ライトキー
+const char* writeKey = "xxxxxxxxxxxxxxxx"; // ライトキー
 
 void setup()
 {
@@ -67,10 +67,12 @@ void loop()
   ambient.set(2, "25.50");
   ambient.set(3, "95000");
   ambient.set(4, "30.2");
+  ambient.set(9, "35.4122000"); //緯度(lat)
+  ambient.set(10, "139.4130000"); //経度(lng)
 
   ambient.send();
 
-  delay(10000);
+  delay(300000);
 
 }
 
