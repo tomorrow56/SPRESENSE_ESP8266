@@ -104,8 +104,6 @@ Ambient::clear(int field) {
 bool
 Ambient::send() {
 
-	uint16_t READBUFFSIZ = 0xFF;
-	char readbuffer[READBUFFSIZ];
 	String cmd;
 	int retry;
 
@@ -174,17 +172,26 @@ Ambient::send() {
     return false;
   }
 
+    String readChar = "";
 //    while (this->client->available()) {
   while (Serial2.available()) {
 //        inChar = this->client->read();
     inChar = Serial2.read();
+    readChar += (String)inChar;
     if(AMBIENT_DEBUG){
       Serial.write(inChar);
     }
+    delay(1);
   }
 
+  if(!strstr(readChar.c_str(), "CLOSED")){
 //    this->client->stop();
-	this->stop();
+  	ret = this->stop();
+    if (ret == 0) {
+      ERR("close failed\n");
+      return false;
+    }
+  }
 
   for (int i = 0; i < AMBIENT_NUM_PARAMS; i++) {
     this->data[i].set = false;
@@ -252,17 +259,26 @@ Ambient::bulk_send(char *buf) {
     }
     delay(500);
 
+    String readChar = "";
 //    while (this->client->available()) {
-	while (Serial2.available()) {
+    while (Serial2.available()) {
 //        inChar = this->client->read();
-		inChar = Serial2.read();
-		if(AMBIENT_DEBUG){
-			Serial.write(inChar);
-		}
-	}
+      inChar = Serial2.read();
+      readChar += (String)inChar;
+      if(AMBIENT_DEBUG){
+        Serial.write(inChar);
+      }
+      delay(1);
+    }
 
+    if(!strstr(readChar.c_str(), "CLOSED")){
 //    this->client->stop();
-	this->stop();
+      ret = this->stop();
+      if (ret == 0) {
+        ERR("close failed\n");
+        return false;
+      }
+    }
 
     for (int i = 0; i < AMBIENT_NUM_PARAMS; i++) {
         this->data[i].set = false;
@@ -311,17 +327,26 @@ Ambient::delete_data(const char * userKey) {
         return false;
     }
 
+    String readChar = "";
 //    while (this->client->available()) {
-	while (Serial2.available()) {
+    while (Serial2.available()) {
 //        inChar = this->client->read();
-		inChar = Serial2.read();
-		if(AMBIENT_DEBUG){
-			Serial.write(inChar);
-		}
-	}
+      inChar = Serial2.read();
+      readChar += (String)inChar;
+      if(AMBIENT_DEBUG){
+        Serial.write(inChar);
+      }
+      delay(1);
+    }
 
+    if(!strstr(readChar.c_str(), "CLOSED")){
 //    this->client->stop();
-	this->stop();
+      ret = this->stop();
+      if (ret == 0) {
+        ERR("close failed\n");
+        return false;
+      }
+    }
 
     for (int i = 0; i < AMBIENT_NUM_PARAMS; i++) {
         this->data[i].set = false;
@@ -431,6 +456,11 @@ Ambient::stop() {
 				Serial.println("\n*** CLOSED ***");
 			}
 			return true;
+		}else if (strstr(readbuffer, "ERROR")){
+			if(AMBIENT_DEBUG){
+				Serial.println("\n*** ERROR!! ***");
+			}
+			return false;
 		}
 	}
 	return false;

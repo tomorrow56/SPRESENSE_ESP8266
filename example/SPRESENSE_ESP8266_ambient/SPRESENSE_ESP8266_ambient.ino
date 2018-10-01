@@ -18,7 +18,7 @@ enum {WIFI_ERROR_NONE=0, WIFI_ERROR_AT, WIFI_ERROR_RST, WIFI_ERROR_SSIDPWD, WIFI
 Ambient ambient;
 
 unsigned int channelId = xxxx; // AmbientのチャネルID
-const char* writeKey = "xxxxxxxxxxxxxxxx"; // ライトキー
+const char* writeKey = "xxxxxxxxxxxxxxxx"; // チャネルのライトキー
 
 void setup()
 {
@@ -63,16 +63,22 @@ void setup()
 void loop()
 {
   // 適当なデータをAmbientに送信する
-  ambient.set(1, "33.50");
-  ambient.set(2, "25.50");
-  ambient.set(3, "95000");
-  ambient.set(4, "30.2");
-  ambient.set(9, "35.4122000"); //緯度(lat)
-  ambient.set(10, "139.4130000"); //経度(lng)
+  ambient.set(1, ("33." + String(random(0, 100))).c_str());
+  ambient.set(2, ("30." + String(random(0, 100))).c_str());
+  ambient.set(3, ("95" + String(random(0, 10))).c_str());
+  ambient.set(4, ("30." + String(random(0, 10))).c_str());
+  ambient.set(9, ("35.68" + String(random(0, 10)) + "6340").c_str()); //緯度(lat)
+  ambient.set(10, ("139.69" + String(random(0, 10)) + "1010").c_str()); //経度(lng)
 
-  ambient.send();
+  int ret = ambient.send();
 
-  delay(300000);
+  if (ret == 0) {
+    Serial.println("*** ERROR! RESET Wifi! ***\n");
+    setupWiFi();
+  }else{
+    Serial.println("*** Send comleted! ***\n");
+    delay(300000);
+  }
 
 }
 
